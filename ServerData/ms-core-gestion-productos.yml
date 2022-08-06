@@ -1,0 +1,56 @@
+server:
+  port: 8082
+    
+# My SQL #
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/GALAXY_DEV?serverTimezone=GMT-6
+    username: root
+    password: 123456
+    driverClassName: com.mysql.cj.jdbc.Driver
+    
+springdoc:
+  show-actuator: true
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui-custom.html
+  
+# Spring Boot Admin
+boot:
+  admin:
+    client:
+      url: http://localhost:8890
+      
+# Registry Client
+eureka:
+  client:
+   registryFetchIntervalSeconds: 5
+   fetch-registry: true
+   serviceUrl:
+      defaultZone: http://localhost:8889/eureka
+
+# Actuator
+management:
+  endpoints:
+   web:
+     exposure:
+       include: "*"
+  endpoint:
+   health:
+     show-details: always
+  metrics:
+   tags:
+     application: ms-core-gestion-productos
+
+#JAEGER
+opentracing:
+  jaeger:
+    const-sampler:
+      decision: true
+    enabled: true
+    log-spans: true
+    service-name: ms-core-gestion-productos
+    udp-sender:
+      host: localhost
+      port: 6831

@@ -1,0 +1,31 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: ms-admin-config-server
+
+  profiles:
+    active: native
+  cloud:
+    config:
+      server: 
+        native:
+          searchLocations: file:///D:/workspace-spring-tool-suite/ServerData
+          
+#Configuracion Cloud (git)
+#  cloud:
+#    config:
+#      server:
+#        git:
+#          uri: https://github.com/LuisCardosoOre/MicroservicesArchitectureJava.git
+#          search-paths:
+#          - ServerData
+#          username: ${USER_NAME}
+#          password: ${USER_PASSWORD}
+#          clone-on-start: true
+#          force-pull: true
+#          timeout: 5
+#          default-label: 02.-SpringCloud2021          
+          
+          
+          

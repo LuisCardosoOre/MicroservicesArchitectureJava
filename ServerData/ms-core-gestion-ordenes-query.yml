@@ -1,0 +1,58 @@
+server:
+  port: 8084
+
+# MongoDB #
+spring:
+   data:
+      mongodb:
+         database: GALAXY_DEV
+#        username:
+#        password:
+         host: localhost
+         port: 27017
+
+springdoc:
+  show-actuator: true
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui-custom.html
+
+# Spring Boot Admin
+boot:
+  admin:
+    client:
+      url: http://localhost:8890
+      
+# Registry Client
+eureka:
+  client:
+   registryFetchIntervalSeconds: 5
+   fetch-registry: true
+   serviceUrl:
+      defaultZone: http://localhost:8889/eureka
+
+# Actuator
+management:
+  endpoints:
+   web:
+     exposure:
+       include: "*"
+  endpoint:
+   health:
+     show-details: always
+  metrics:
+   tags:
+     application: ms-core-gestion-ordenes-query
+
+#JAEGER
+opentracing:
+  jaeger:
+    const-sampler:
+      decision: true
+    enabled: true
+    log-spans: true
+    service-name: ms-core-gestion-ordenes-query
+    udp-sender:
+      host: localhost
+      port: 6831
