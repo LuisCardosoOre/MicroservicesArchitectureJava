@@ -21,7 +21,11 @@ public class Constantes {
 	public final static String URL_PRODUCER = "ms-core-gestion-ordenes-producer";
 	public final static String PATH_PRODUCER = "/v1/ordenes-producer";
 	public final static String URL_GUIA = "ms-core-gestion-guias";
-	public final static String PATH_GUIA = "/v1/guias";
+	public final static String PATH_GUIA = "/v1/guias/";
+	public final static String URL_PEDIDO_AUTORIZACION = "ms-core-gestion-pedidos-autorizacion";
+	public static final String PATH_PEDIDO_AUTORIZACION="/v1/pedidos-autorizacion";
+	public final static String URL_GUIA_REDIS = "ms-core-gestion-guias-redis";
+	public final static String PATH_GUIA_REDIS = "/v1/guias-redis/";
 	public final static String ERROR_NOT_FOUND = "NOT FOUND";
 	
 	

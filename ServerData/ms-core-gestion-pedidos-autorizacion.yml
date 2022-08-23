@@ -1,0 +1,58 @@
+server:
+  port: 8065
+
+# ORACLE #    
+spring:
+ datasource:
+  url: jdbc:oracle:thin:@localhost:1521:xe
+  username: GALAXY_ORDENES
+  password: 123456
+  driver-class-name: oracle.jdbc.driver.OracleDriver
+
+# Apache Kafka #
+custom:
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic-name: topic-orden-autorizacion
+    topic-name-ce: topic-orden-autorizacion-simple
+    group-id: group-id-autorizacion
+    group-id-ce: group-id-orden-simple
+
+# Spring Boot Admin
+boot:
+  admin:
+    client:
+      url: http://localhost:8890
+      
+# Registry Client
+eureka:
+  client:
+   registryFetchIntervalSeconds: 5
+   fetch-registry: true
+   serviceUrl:
+      defaultZone: http://localhost:8889/eureka
+
+# Actuator
+management:
+  endpoints:
+   web:
+     exposure:
+       include: "*"
+  endpoint:
+   health:
+     show-details: always
+  metrics:
+   tags:
+     application: ms-core-gestion-pedidos-autorizacion
+
+#JAEGER
+opentracing:
+  jaeger:
+    const-sampler:
+      decision: true
+    enabled: true
+    log-spans: true
+    service-name: ms-core-gestion-pedidos-autorizacion
+    udp-sender:
+      host: localhost
+      port: 6831

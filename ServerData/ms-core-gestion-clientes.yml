@@ -44,7 +44,10 @@ management:
   metrics:
    tags:
      application: ms-core-gestion-clientes
-
+   export:
+     prometheus:
+       enabled: true
+       
 #JAEGER
 opentracing:
   jaeger:

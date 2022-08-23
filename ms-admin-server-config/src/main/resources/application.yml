@@ -26,6 +26,3 @@ spring:
 #          force-pull: true
 #          timeout: 5
 #          default-label: 02.-SpringCloud2021          
-          
-          
-          

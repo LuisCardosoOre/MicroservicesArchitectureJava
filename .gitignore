@@ -1,9 +1,1 @@
-# Recursos a ingnorar
-Servers
-.metadata
-.settings
-target
-.classpath
-.project
-#.tern-project
 /.metadata/

@@ -12,5 +12,6 @@ public interface OrdenService extends GenericService<OrdenEntity> {
 	Optional<OrdenDTO> findByOrden( OrdenEntity t ) throws ServiceException;
 	List<OrdenDTO> getAllOrdenes() throws ServiceException;
 	Integer aprobacion(OrdenDTO t) throws ServiceException;
+	OrdenEntity comprar(OrdenEntity t) throws ServiceException;
 	
 }

@@ -15,10 +15,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.domain.OrdenDetalleEntity;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.domain.OrdenEntity;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.dto.OrdenDTO;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.dto.OrdenDetalleDTO;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.repository.OrdenRepository;
+import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.autorizacion.OrdenAutorizacionService;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.cliente.ClienteService;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.guia.GuiaService;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.kafka.Orden;
@@ -27,6 +29,7 @@ import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.cl
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.producto.ProductoDTO;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.producto.ProductoService;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.exception.ServiceException;
+import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.service.OrdenDetalleService;
 import pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.service.OrdenService;
 
 @Slf4j
@@ -52,6 +55,12 @@ public class OrdenServiceImpl extends GenericServiceImpl implements OrdenService
 
 	@Autowired
 	private GuiaService guiaService;
+	
+	@Autowired
+	private OrdenDetalleService detalleService;
+	
+	@Autowired
+	private OrdenAutorizacionService ordenAutorizacionService;
 
 	@Override
 	public List<OrdenEntity> getAll() throws ServiceException {
@@ -166,38 +175,76 @@ public class OrdenServiceImpl extends GenericServiceImpl implements OrdenService
 	private OrdenDTO getOrdenDTO(OrdenEntity ordenEntity) {
 		return jsonMapper.convertValue(ordenEntity, OrdenDTO.class);
 	}
+	private OrdenEntity getOrdenEntity(OrdenDTO ordenDTO) {
+		return jsonMapper.convertValue(ordenDTO, OrdenEntity.class);
+	}
+	
+	private Orden getOrden(OrdenDTO t) {
+		Orden type = Orden.builder().idOrden(t.getId()).fecha(t.getFecha()).total(t.getTotal())
+				.idCliente(t.getIdCliente()).dni(t.getCliente().getDni()).estado(t.getEstado()).build();
+		type.setItems(new ArrayList<>());
+		for (OrdenDetalleDTO det : t.getItems()) {
+			OrdenDetalle x = OrdenDetalle.builder().id(det.getId()).cantidad(det.getCantidad())
+					.precio(det.getPrecio()).subtotal(det.getSubtotal()).idProducto(det.getIdProducto())
+					.descripcion(det.getProducto().getDescripcion()).estado(det.getEstado()).build();
+			type.getItems().add(x);
+		}
+		
+		return type;
+	}
 
 	@Override
 	public Integer aprobacion(OrdenDTO t) throws ServiceException {
 		try {
-			Orden type = Orden.builder().idOrden(t.getId()).fecha(t.getFecha()).total(t.getTotal())
-					.idCliente(t.getIdCliente()).dni(t.getCliente().getDni()).estado("2").build();
-			type.setItems(new ArrayList<>());
-			for (OrdenDetalleDTO det : t.getItems()) {
-				OrdenDetalle x = OrdenDetalle.builder().id(det.getId()).cantidad(det.getCantidad())
-						.precio(det.getPrecio()).subtotal(det.getSubtotal()).idProducto(det.getIdProducto())
-						.descripcion(det.getProducto().getDescripcion()).estado(det.getEstado()).build();
-				type.getItems().add(x);
-			}
-			log.info("type : " + type);
+			Orden type = getOrden(t);
+			type.setEstado("2");
 			Integer rpta = ordenProducerService.sendMessage(type);
-			log.info("RPTA : " + rpta);
-			if (rpta == 1) {
-				productoService.update(null);
+			if (rpta == 1) {				
 				Integer rptaG = guiaService.insertarGuia(type);
-				log.info("RPTA G : " + rptaG);
 				if (rptaG == 1) {
 					for (OrdenDetalleDTO det : t.getItems()) {
 						ProductoDTO p = det.getProducto();
 						p.setStock(p.getStock() - det.getCantidad());
 						productoService.update(p);
 					}
+					OrdenEntity oOrden = this.findById(OrdenEntity.builder().id(t.getId()).build()).orElse(null);
+					oOrden.setEstado("2");
+					this.getOrdenRepository().save(oOrden);
 					return rptaG;
 				} else {
 					return 0;
 				}
 			} else {
 				return 0;
+			}
+		} catch (Exception e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	@Override
+	public OrdenEntity comprar(OrdenEntity t) throws ServiceException {
+		try {
+			OrdenEntity oOrden = this.insert(t);
+			if (oOrden == null) {
+				return null;
+			}else{
+				for (OrdenDetalleEntity det : oOrden.getItems()) {					
+					det.setOrden(OrdenEntity.builder().id(oOrden.getId()).build());
+					detalleService.insert(det);
+				}				
+				
+				OrdenDTO oOrdenDTO = this.getOrdenDTO(t);
+				if (!Objects.isNull(oOrdenDTO)) {
+					oOrdenDTO.setCliente(clienteService.findById(oOrdenDTO.getIdCliente()));
+					for (OrdenDetalleDTO detalle : oOrdenDTO.getItems()) {
+						detalle.setProducto(productoService.findById(detalle.getIdProducto()));
+					}
+				}
+				Orden type = getOrden(oOrdenDTO);
+				ordenAutorizacionService.sendPedido(type);
+				
+				return oOrden;
 			}
 		} catch (Exception e) {
 			throw new ServiceException(e);

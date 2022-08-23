@@ -1,6 +1,7 @@
 package pe.edu.galaxy.training.java.ms.sc.ventas.mscoregestionordenes.services.client.guia;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,4 +31,6 @@ public class Guia implements Serializable{
 	private Double total;
 
 	private String estado;
+	
+	private List<GuiaDetalle> items;
 }

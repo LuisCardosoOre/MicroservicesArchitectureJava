@@ -45,9 +45,9 @@ public class OrdenController extends GenericController{
 	
 	@Autowired
 	private OrdenService ordenService;
-	@Autowired
+	/*@Autowired
 	private OrdenDetalleService ordenDetalleService;
-	
+	*/
 	@Operation(summary = "Obtener todos los datos de las ordenes de compra pendientes")
 	@GetMapping("/procesar")
 	public ResponseEntity<MensajeResponse> getAll() {
@@ -233,6 +233,32 @@ public class OrdenController extends GenericController{
 
 		try {
 
+			OrdenEntity oOrden = this.getOrdenService().comprar(type);
+			log.info("ORDEN : " + oOrden );
+			if (oOrden == null) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(oOrden);
+			}
+			return ResponseEntity.status(HttpStatus.CREATED).body(oOrden);
+
+		} catch (ServiceException e) {
+			log.error(e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	/*
+	 @PostMapping("/comprar")
+	public ResponseEntity<Object> insertCompra(@RequestBody @Validated OrdenEntity type, BindingResult result) {
+
+		if (result.hasErrors()) {
+			String msgErr = super.formatMapMessage(result);
+			log.info("msgErr " + msgErr);
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, msgErr);
+		}
+
+
+		try {
+
 			OrdenEntity oOrden = this.getOrdenService().insert(type);
 			log.info("ORDEN : " + oOrden );
 			if (oOrden == null) {
@@ -251,6 +277,8 @@ public class OrdenController extends GenericController{
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
+	 */
+	
 	
 	@PostMapping("/aprobar")
 	public ResponseEntity<?> aprobarOrden(@RequestBody @Validated OrdenDTO type, BindingResult result){
@@ -266,9 +294,9 @@ public class OrdenController extends GenericController{
 			Integer orden = this.getOrdenService().aprobacion(type);
 			log.info("Orden" + orden);
 			if (orden == 0) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("ERROR");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(type);
 			}else {				
-				return ResponseEntity.status(HttpStatus.CREATED).body("EXITO");						
+				return ResponseEntity.status(HttpStatus.CREATED).body(type);						
 			}
 
 			
